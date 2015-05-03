@@ -19,7 +19,7 @@ function(rowNum = 10, colNum = 6, rho = 0.3)
   myGrid = matrix(grid, nrow = rowNum, ncol = colNum, byrow = TRUE)
   plotGrid(myGrid)
   box()
-  return(myGrid)
+  return(list(grid = myGrid, bc = blueCars, rc = redCars))
 }
 
 
