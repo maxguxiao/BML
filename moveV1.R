@@ -1,8 +1,7 @@
 moveCars =
-function(rowNum = 10, colNum = 6, rho = 0.3, steps = 1000)
+function(rowNum = 6, colNum = 4, rho = 0.3, steps = 3)
 {
   n = rowNum * colNum
-  set.seed(100)
   test = createGrid(rowNum = rowNum,colNum = colNum, rho = rho )
   currentRedPos = test$rc
   currentBluePos = test$bc
@@ -24,16 +23,16 @@ function(rowNum = 10, colNum = 6, rho = 0.3, steps = 1000)
 redCarMove = function(currentRedPos, currentBluePos, colNum, rowNum, n)
 {
   movetry = (currentRedPos + colNum) 
-  movetry[movetry > 60] = movetry[movetry > 60] - 60
+  movetry[movetry > n] = movetry[movetry > n] - n
   whereToMove = movetry %in% currentBluePos
   names(whereToMove) = currentRedPos
   checkPoints = as.numeric(names(whereToMove[whereToMove == TRUE]))
   if(length(checkPoints))
   {
-      whereToMove <- rowSums(sapply(checkPoints, checkRed, whereToMove, colNum)) != 0
+      whereToMove <- rowSums(sapply(checkPoints, checkRed, whereToMove, colNum, n)) != 0
   }
   move = (currentRedPos[!whereToMove] + colNum)
-  move[move > 60] = move[move > 60] - 60  
+  move[move > n] = move[move > n] - n  
   currentRedPos[!whereToMove] = move
   grid = integer(n)
   grid[currentRedPos] = 1
@@ -49,14 +48,14 @@ blueCarMove = function(currentBluePos, currentRedPos, colNum, rowNum, n)
   bmovetry = (currentBluePos + 1 - 
                 (ceiling((currentBluePos + 1) / colNum) - 
                    ceiling(currentBluePos / colNum)) * colNum) 
-  
+  #bmovetry[bmovetry > n] = bmovetry[bmovetry > n] - n
   
   bwhereToMove = bmovetry %in% currentRedPos
   names(bwhereToMove) = currentBluePos
   checkPoints = as.numeric(names(bwhereToMove[bwhereToMove == TRUE]))
   if(length(checkPoints))
   {
-    whereToMove <- rowSums(sapply(checkPoints, checkBlue, bwhereToMove,colNum)) != 0
+    bwhereToMove <- rowSums(sapply(checkPoints, checkBlue, bwhereToMove,colNum)) != 0
   }
   
   move = (currentBluePos[!bwhereToMove] + 1 -
@@ -75,25 +74,31 @@ blueCarMove = function(currentBluePos, currentRedPos, colNum, rowNum, n)
 
 
 
-checkRed <- function(checkPos, whereToMove, colNum)
+checkRed <- function(checkPos, whereToMove, colNum, n)
 {
-    if( (checkPos - 6 ) %in% as.numeric(names(whereToMove)))
+    checkNum = checkPos - colNum
+    checkNum[checkNum < 0] = checkNum[checkNum < 0] + n
+    if(checkNum %in% as.numeric(names(whereToMove)))
     {
         
-        whereToMove[as.character(checkPos-6)] =TRUE
-        check(checkPos - 6, whereToMove,colNum)
+        whereToMove[as.character(checkNum)] =TRUE
+        checkRed(checkNum, whereToMove, colNum, n)
     }
     else return(whereToMove)
 }
 
 checkBlue <- function(checkPos, whereToMove, colNum)
 {
-  if( (checkPos - 1 ) %in% as.numeric(names(whereToMove)) & 
-        (floor(checkPos - 1) == floor(checkPos - 1)))
+  checkNum = checkPos - 1
+  if(ceiling(checkNum/colNum) < ceiling(checkPos/colNum))
+  {
+    checkNum = checkNum + colNum
+  }
+  if( (checkNum) %in% as.numeric(names(whereToMove)))
   {
     
-    whereToMove[as.character(checkPos-1)] = TRUE
-    check(checkPos - 1, whereToMove,colNum)
+    whereToMove[as.character(checkNum)] = TRUE
+    checkBlue(checkNum, whereToMove,colNum)
   }
   else return(whereToMove)
 }
